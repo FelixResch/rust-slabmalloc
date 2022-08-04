@@ -1,3 +1,4 @@
+#![feature(nonnull_slice_from_raw_parts)]
 //! A slab allocator implementation for objects less than a page-size (4 KiB or 2MiB).
 //!
 //! # Overview
@@ -48,17 +49,17 @@ use core::ptr::{self, NonNull};
 
 use log::trace;
 
-#[cfg(target_arch = "x86_64")]
+#[cfg(any(target_arch = "x86_64", target_arch = "riscv64"))]
 const CACHE_LINE_SIZE: usize = 64;
 
-#[cfg(target_arch = "x86_64")]
+#[cfg(any(target_arch = "x86_64", target_arch = "riscv64"))]
 const BASE_PAGE_SIZE: usize = 4096;
 
-#[cfg(target_arch = "x86_64")]
+#[cfg(any(target_arch = "x86_64", target_arch = "riscv64"))]
 #[allow(unused)]
 const LARGE_PAGE_SIZE: usize = 2 * 1024 * 1024;
 
-#[cfg(target_arch = "x86_64")]
+#[cfg(any(target_arch = "x86_64", target_arch = "riscv64"))]
 type VAddr = usize;
 
 /// Error that can be returned for `allocation` and `deallocation` requests.
@@ -72,7 +73,7 @@ pub enum AllocationError {
 }
 
 pub unsafe trait Allocator<'a> {
-    fn allocate(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocationError>;
+    fn allocate(&mut self, layout: Layout) -> Result<NonNull<[u8]>, AllocationError>;
     fn deallocate(&mut self, ptr: NonNull<u8>, layout: Layout) -> Result<(), AllocationError>;
     unsafe fn refill_large(
         &mut self,

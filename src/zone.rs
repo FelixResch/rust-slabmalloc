@@ -174,7 +174,7 @@ impl<'a> ZoneAllocator<'a> {
 
 unsafe impl<'a> crate::Allocator<'a> for ZoneAllocator<'a> {
     /// Allocate a pointer to a block of memory described by `layout`.
-    fn allocate(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocationError> {
+    fn allocate(&mut self, layout: Layout) -> Result<NonNull<[u8]>, AllocationError> {
         match ZoneAllocator::get_slab(layout.size()) {
             Slab::Base(idx) => self.small_slabs[idx].allocate(layout),
             Slab::Large(idx) => self.big_slabs[idx].allocate(layout),

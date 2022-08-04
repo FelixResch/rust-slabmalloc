@@ -247,7 +247,7 @@ impl<'a, P: AllocablePage> SCAllocator<'a, P> {
     ///
     /// The function may also move around pages between lists
     /// (empty -> partial or partial -> full).
-    pub fn allocate(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocationError> {
+    pub fn allocate(&mut self, layout: Layout) -> Result<NonNull<[u8]>, AllocationError> {
         trace!(
             "SCAllocator({}) is trying to allocate {:?}",
             self.size,
@@ -283,7 +283,7 @@ impl<'a, P: AllocablePage> SCAllocator<'a, P> {
             }
         };
 
-        let res = NonNull::new(ptr).ok_or(AllocationError::OutOfMemory);
+        let res = NonNull::slice_from_raw_parts(NonNull::new(ptr).ok_or(AllocationError::OutOfMemory)?, self.size);
 
         if !ptr.is_null() {
             trace!(
@@ -293,7 +293,7 @@ impl<'a, P: AllocablePage> SCAllocator<'a, P> {
             );
         }
 
-        res
+        Ok(res)
     }
 
     /// Deallocates a previously allocated `ptr` described by `Layout`.
